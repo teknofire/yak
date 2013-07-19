@@ -1,0 +1,19 @@
+#!/usr/bin/env ruby
+# encoding: utf-8
+# Usage: yak <%= @name %>
+# Summary: Describe <%= @name %> command here
+
+require 'trollop'
+
+opts = Trollop::options do
+  # opt :verbose, 'verbose output'
+  opt :complete
+end
+
+# Provide yak completions
+if opts[:complete]
+  # puts '--verbose'
+  exit
+end
+
+# Put the rest of the <%= @name %> command here
