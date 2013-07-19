@@ -1,0 +1,56 @@
+#!/usr/bin/env ruby
+# encoding: utf-8
+# Usage: yak new <command name>
+# Summary: Create a new yak command
+
+require 'trollop'
+require 'colored'
+require 'erb'
+
+opts = Trollop::options do
+  opt :type, 'Create new ruby command', default: 'ruby'
+  opt 'dont-open', 'Don\'t open the new command in $EDITOR'
+  opt :complete
+end
+
+# Provide yak completions
+if opts[:complete]
+  puts '--type'
+  exit
+end
+
+class CmdTemplate
+  def initialize(name, template)
+    @name = name 
+    @template = template
+  end
+  
+  def build(output_filename)
+    erb = ERB.new(File.read(@template))
+    erb.result(binding)
+  end
+end
+
+name = ARGV.shift
+template = File.join(ENV['_YAK_ROOT'], 'share/yak/cmd_templates', "#{opts[:type]}_command.erb")
+
+unless File.exists?(template)
+  puts "» Unknown command type: #{opts[:type]}".red
+  exit 1
+end
+
+output = File.join(ENV['_YAK_ROOT'], 'libexec', "yak-#{name}")
+
+if File.exists?(output)
+  puts "» Error: #{name} command already exists".red
+  exit 1
+end
+
+cmd = CmdTemplate.new(name, template)
+File.open(output, 'w') do |fp|
+  fp << cmd.build(output)
+end
+
+unless opts['dont-open']
+  exec([ENV['EDITOR'], output].join(' '))
+end
