@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# encoding: utf-8
+# Usage: yak shave
+# Summary: Describe shave command here
+
+# Put the rest of the shave command here
+cd $_YAK_ROOT
+bundle
