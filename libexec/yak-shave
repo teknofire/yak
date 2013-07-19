@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # encoding: utf-8
 # Usage: yak shave
-# Summary: Describe shave command here
+# Summary: This command will run bundle and any other setup required for the yak commands
 
 # Put the rest of the shave command here
 cd $_YAK_ROOT
+
 bundle
