@@ -52,5 +52,5 @@ File.open(output, 'w') do |fp|
 end
 
 unless opts['dont-open']
-  exec([ENV['EDITOR'], output].join(' '))
+  system([ENV['EDITOR'], output].join(' '))
 end

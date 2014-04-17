@@ -1,10 +1,12 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    clamp (0.6.3)
     trollop (2.0)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
+  clamp
   trollop
