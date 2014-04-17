@@ -10,4 +10,4 @@ Try the latest yak shaver from teknofire industries!
     cd ~/.yak
     bundle
 
-    echo 'eval "$($HOME/.gina/bin/yak init -)"' >> ~/.bash_profile
+    echo 'eval "$($HOME/.yak/bin/yak init -)"' >> ~/.bash_profile
