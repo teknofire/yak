@@ -1,0 +1,98 @@
+#!/usr/bin/env ruby
+# encoding: utf-8
+# provide yak completions
+# Usage: yak geojson SOURCE_FILE
+# Summary: Convert gis file into geojson using ogr2ogr
+
+require 'clamp'
+require 'fileutils'
+
+class GeoJSONConvert < Clamp::Command
+  option ['-p', '--output-projection'], 'PROJECTION', 'output projection for geojson', default: 'EPSG:3338'
+  option ['-o', '--output-file'], 'OUTPUT_FILENAME', 'file to save geojson file as'
+  option ['-f', '--force'], :flag, 'force output if file already exists'
+  option ['-s', '--split-on'], 'FIELD', 'field to split the shapefile based on unique values'
+  option '--complete', :flag, 'autocomplete output'
+  
+  parameter '[SOURCE_FILE]', 'source file', :attribute_name => :source_file
+  
+  def execute
+    return autocomplete if complete?
+    
+    unless File.exists?(source_file)
+      signal_usage_error "source file doesn't exist" 
+    end
+    
+    if split_on
+      split_values(split_on, File.basename(source_file, '.*')).each do |value|
+        output_geojson(value, "#{split_on}='#{value}'")
+      end
+    else
+      output_geojson
+    end
+  end
+  
+  def output_geojson(postfix = nil, where = nil)
+    output_file ||= File.basename(source_file, '.*')
+    
+    # clipshp = File.join(ENV['_YAK_ROOT'], 'share/yak/alaska-segments/test.shp');
+    # puts clipshp
+    # '-clipsrc', clipshp, '-clipsrclayer', 'test', 
+    
+    cmd = ['ogr2ogr', "-t_srs", output_projection, '-f', 'GeoJSON']
+    
+    unless where.nil?
+      cmd += ['-where', where]
+    end
+    
+    if postfix.nil?
+      ofile = output_file
+    else
+      ofile = "#{output_file}_#{postfix.gsub(/\W/, '_').downcase}"
+    end
+
+    ofile = File.basename(ofile, '.*') + '.geojson'
+
+    FileUtils.rm_rf(ofile) if File.exists?(ofile) and force?
+    
+    cmd += [ofile, source_file]
+    
+    puts cmd.join(' ')
+    system *cmd
+    
+    puts File.absolute_path(ofile)
+  end
+  
+  def split_values(field, layer)
+    # ogr2ogr -sql 'select distinct type from renewable_energy_fund_sites_2013' -f 'csv' '/vsistdout/' renewable_energy_fund_sites_2013.shp
+    # type,
+    # Biofuels
+    # Heat Recovery
+    # Geothermal
+    # Biomass
+    # Hydro
+    # Transmission
+    # Wind
+    # Solar/Thermal
+    # OceanRiver
+    
+    cmd = ['ogr2ogr', '-sql', "'select distinct #{field} from #{layer}' -f csv /vsistdout/ #{source_file}"]
+    puts cmd.join(' ')
+    results = `#{cmd.join(' ')}`.split("\n")
+    results.shift # get rid of header
+    
+    results
+  end
+  
+  def autocomplete    
+    opts = %w{ --output-projection --output-file }
+    opts += Dir.entries('.').reject { |f| f[0] == ?. or %{ .dbf .shx .xml .sbx .sbn .prj .svg .json }.include?(File.extname(f)) }
+    
+    
+    puts opts.join("\n")
+  end
+end
+
+GeoJSONConvert.run
+
+# Put the rest of the geojson command here
