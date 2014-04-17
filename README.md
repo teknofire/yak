@@ -6,7 +6,7 @@ Try the latest yak shaver from teknofire industries!
 
 ## Install
 
-    git clone git@github.com:teknofire/yak.gi ~/.yak
+    git clone git@github.com:teknofire/yak.git ~/.yak
     cd ~/.yak
     bundle
 
