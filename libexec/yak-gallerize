@@ -60,6 +60,7 @@ li {
     return if File.exists?("thumbs/#{file}") and !force_thumbnail?
     
     raise "Couldn't create thumbs directory" unless FileUtils.mkdir_p('thumbs')
+    puts "Thumbnailing #{file}"
     `convert #{file} -resize 200x200 thumbs/#{file}`
   end
   
@@ -76,7 +77,7 @@ li {
       File.open('index.html', 'w') do |fp|
         fp << header(title, directory)
         
-        Dir.glob('*.jpg') do |file|
+        Dir.glob('*.{jpg,JPG,png,PNG}') do |file|
           next if file[0] == ?. or file == 'index.html' or File.directory?(file)
           thumbnail(file)
           fp << image_content(file)
