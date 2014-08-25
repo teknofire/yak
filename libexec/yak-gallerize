@@ -59,7 +59,7 @@ li {
   def thumbnail(file)
     return if File.exists?("thumbs/#{file}") and !force_thumbnail?
     
-    FileUtils.mkdir_p('thumbs')
+    raise "Couldn't create thumbs directory" unless FileUtils.mkdir_p('thumbs')
     `convert #{file} -resize 200x200 thumbs/#{file}`
   end
   
