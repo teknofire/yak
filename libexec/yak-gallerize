@@ -1,0 +1,83 @@
+#!/usr/bin/env ruby
+# encoding: utf-8
+# Usage: yak gallerize
+# Summary: create simple thumbnail gallery here
+
+require 'clamp'
+require 'fileutils'
+
+Clamp do 
+  option "--title", "TITLE", "Title to add to each page", default: "Image gallery"
+  option "--force-thumbnail", :flag, "Force generation of thumbnails", default: false
+  
+  parameter "directory", "the directory to thumbnail", attribute_name: :directory
+  
+  def image_content(file)
+    
+    "<li><a href=\"#{file}\"><img src=\"thumbs/#{file}\" /></a></li>"
+  end
+  
+  def header(title, folder)
+    <<-EOHTML
+<html>
+<head>
+<style type="text/css">
+img { 
+  max-width: 100%; 
+  vertical-align: middle;
+}
+ul {
+  list-style-type: none;
+  padding:0;
+  margin:0;
+}
+li {
+  padding:5px;
+  display: inline-block;
+}
+.thumbnails {
+  text-align: center;
+}
+</style>
+</head>
+<body>
+<h1>#{title} - #{folder}</h1>
+<div class="thumbnails">
+<ul>
+    EOHTML
+  end
+  
+  def footer
+    <<-EOHTML
+</ul>
+</div>
+</body>
+</html>
+    EOHTML
+  end
+  
+  def thumbnail(file)
+    return if !force_thumbnail? and File.exists?("thumbs/#{file}")
+    
+    FileUtils.mkdir_p('thumbs')
+    `convert #{file} -resize 200x200 thumbs/#{file}`
+  end
+  
+  def execute
+    puts "Skipping #{directory}, not a directory" unless File.directory?(directory)
+    
+    Dir.chdir(directory) do
+      File.open('index.html', 'w') do |fp|
+        fp << header(title, directory)
+        
+        Dir.glob('*.jpg') do |file|
+          next if file[0] == ?. or file == 'index.html' or File.directory?(file)
+          thumbnail(file)
+          fp << image_content(file)
+        end
+        
+        fp << footer()
+      end
+    end
+  end
+end
