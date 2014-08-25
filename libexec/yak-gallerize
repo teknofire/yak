@@ -38,10 +38,17 @@ li {
 .thumbnails {
   text-align: center;
 }
+h1 > small {
+  color: #666;
+  font-size: 0.6em;
+}
 </style>
 </head>
 <body>
-<h1>#{title} - #{folder}</h1>
+<h1>
+  #{title} - #{folder}
+  <small>(click image for full resolution)</small>
+</h1>
 <div class="thumbnails">
 <ul>
     EOHTML
