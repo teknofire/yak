@@ -57,14 +57,20 @@ li {
   end
   
   def thumbnail(file)
-    return if !force_thumbnail? and File.exists?("thumbs/#{file}")
+    return if File.exists?("thumbs/#{file}") and !force_thumbnail?
     
     FileUtils.mkdir_p('thumbs')
     `convert #{file} -resize 200x200 thumbs/#{file}`
   end
   
+  def imagemagick_present?
+    `which convert`
+    $?.success?
+  end
+  
   def execute
-    puts "Skipping #{directory}, not a directory" unless File.directory?(directory)
+    signal_usage_error "Skipping #{directory}, not a directory" unless File.directory?(directory)
+    signal_usage_error "Imagemagick is not installed!" unless imagemagick_present?
     
     Dir.chdir(directory) do
       File.open('index.html', 'w') do |fp|
