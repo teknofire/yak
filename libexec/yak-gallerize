@@ -14,7 +14,7 @@ Clamp do
   
   def image_content(file)
     
-    "<li><a href=\"#{file}\"><img src=\"thumbs/#{file}\" /></a></li>"
+    "<li><span class=\"helper\"></span><a href=\"#{file}\" class=\"thumbnail\"><img src=\"thumbs/#{file}\" /></a></li>"
   end
   
   def header(title, folder)
@@ -22,6 +22,7 @@ Clamp do
 <html>
 <head>
 <style type="text/css">
+
 img { 
   max-width: 100%; 
   vertical-align: middle;
@@ -32,17 +33,32 @@ ul {
   margin:0;
 }
 li {
-  padding:5px;
   display: inline-block;
+  padding: 3px;
+  margin: 5px;
+  width: 200px;
+  height: 200px;
 }
 .thumbnails {
+  clear: both;
   text-align: center;
 }
+
+.thumbnail {
+}
+
+.helper {
+  vertical-align: middle;
+  display: inline-block;
+  height: 100%;
+}
+
 h1 > small {
   color: #666;
   font-size: 0.6em;
 }
 </style>
+
 </head>
 <body>
 <h1>
