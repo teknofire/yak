@@ -84,7 +84,7 @@ h1 > small {
     
     raise "Couldn't create thumbs directory" unless FileUtils.mkdir_p('thumbs')
     puts "Thumbnailing #{file}"
-    `convert #{file} -resize 200x200 thumbs/#{file}`
+    `convert "#{file}" -resize 200x200 "thumbs/#{file}"`
   end
   
   def imagemagick_present?
