@@ -1,0 +1,137 @@
+#!/usr/bin/env ruby
+# encoding: utf-8
+# provide yak completions
+# Usage: yak geojson SOURCE_FILE
+# Summary: download and generate geojson for AAVA datasets
+
+require 'clamp'
+require 'fileutils'
+require 'yaml'
+require 'erb'
+require 'highline/import'
+require 'ostruct'
+
+class Template < OpenStruct
+  def render(template)
+    ERB.new(File.read(template)).result(binding)
+  end
+end
+
+class AAVAConvert < Clamp::Command
+  option ['-p', '--procfile'], 'PROCFILE', 'procfile with attributes for downloading and converting', default: 'Procfile'
+  option ['-n', '--pretend'], :flag, 'pretend to execute'
+  option ['-m', '--markdown'], :flag, 'output markdown info instead of converting'
+  option ['-i', '--init'], :flag, 'init new directory for aava data'
+  option '--complete', :flag, 'autocomplete output'
+
+  parameter '[DIRECTORY]', 'directory', :attribute_name => :directory, default: '.'
+
+  def execute
+    return autocomplete if complete?
+    return initalize_directory if init?
+
+    check_procfile
+
+    return markdown if markdown?
+
+
+    convert
+  end
+
+  def procfile_exists?
+    File.exists?(File.join(working_path, procfile))
+  end
+
+  def procfile_template
+    File.join(ENV['_YAK_ROOT'], 'share/aava/Procfile.erb')
+  end
+
+  def vrt_template
+    File.join(ENV['_YAK_ROOT'], 'share/aava/export.vrt.erb')
+  end
+
+  def check_procfile
+    unless procfile_exists?
+      signal_usage_error "Could not find #{procfile}"
+    end
+  end
+
+  def config
+    @config ||= YAML.load(open(procfile))
+  end
+
+  def working_path
+    File.join(FileUtils.pwd, directory)
+  end
+
+  def initalize_directory
+    if procfile_exists?
+      signal_usage_error "Specified directory already exists"
+    end
+
+    FileUtils.mkdir_p(working_path)
+    FileUtils.chdir(working_path) do
+      data = {
+        name: File.basename(FileUtils.pwd),
+        spreadsheet_url: ask('Spreadsheet url? '),
+        ubermap_url: ask('Ubermap url? ')
+      }
+
+      data[:export_url] = data[:spreadsheet_url].gsub(/\/edit/, '/export?exportFormat=csv')
+
+      File.open('Procfile', 'w') do |fp|
+        fp << Template.new(data).render(procfile_template)
+      end
+      File.open("#{data[:name]}.vrt", 'w') do |fp|
+        fp << Template.new(data).render(vrt_template)
+      end
+
+      `echo "$(yak aava -m)" >> ../README.md`
+      `yak aava`
+    end
+  end
+
+  def download_url
+    config['download'].gsub("curl -L \"", '').gsub(/"\s+>\s+\w+\.csv$/, '').gsub('export?exportFormat=csv', 'edit')
+  end
+
+  def markdown
+    puts <<-EOMD
+
+## #{File.basename(File.realpath(working_path))}
+
+Google Doc: #{download_url}
+
+Ubermap edit: #{config['edit']}
+
+Convert command
+
+    #{config['convert']}
+
+    EOMD
+  end
+
+  def convert
+    FileUtils.chdir(working_path) do
+      runit('download') && runit('convert') && runit('edit', 'open')
+    end
+  end
+
+  def runit(item, tool='')
+    return unless config.include?(item)
+
+    cmd="#{tool} #{config[item]}"
+    puts cmd
+    puts `#{cmd}` unless pretend?
+    return $?
+  end
+
+  def autocomplete
+    opts = Dir.entries('.').reject { |f| f[0] == ?. || !File.directory?(f) }
+    # opts += %w{ -m --markdown -n --pretend -p --procfile }
+
+    puts opts.join("\n")
+  end
+end
+
+AAVAConvert.run

@@ -5,3 +5,4 @@ source "https://rubygems.org"
 
 gem 'trollop'
 gem 'clamp'
+gem 'highline'
