@@ -4,6 +4,9 @@
 # Usage: yak geojson SOURCE_FILE
 # Summary: download and generate geojson for AAVA datasets
 
+require 'rubygems'
+require 'bundler/setup'
+
 require 'clamp'
 require 'fileutils'
 require 'yaml'
