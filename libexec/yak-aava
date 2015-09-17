@@ -22,6 +22,7 @@ class AAVAConvert < Clamp::Command
   option ['-n', '--pretend'], :flag, 'pretend to execute'
   option ['-m', '--markdown'], :flag, 'output markdown info instead of converting'
   option ['-i', '--init'], :flag, 'init new directory for aava data'
+  option ['-b', '--browser'], 'browser', 'open the ubermap site with the following command', default: 'open'
   option '--complete', :flag, 'autocomplete output'
 
   parameter '[DIRECTORY]', 'directory', :attribute_name => :directory, default: '.'
@@ -113,7 +114,7 @@ Convert command
 
   def convert
     FileUtils.chdir(working_path) do
-      runit('download') && runit('convert') && runit('edit', 'open')
+      runit('download') && runit('convert') && runit('edit', browser)
     end
   end
 
