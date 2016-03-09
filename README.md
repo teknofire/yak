@@ -1,6 +1,6 @@
 # Yak shaving made easy
 
-Tired of having shave the same yak over and over again, want to automate the process or simplify it a bit,
+Tired of having shave the same yak over and over again? Want to automate the process or simplify it a bit?
 
 Try the latest yak shaver from teknofire industries!
 
@@ -11,3 +11,7 @@ Try the latest yak shaver from teknofire industries!
     bundle
 
     echo 'eval "$($HOME/.yak/bin/yak init -)"' >> ~/.bash_profile
+
+## Updating
+
+    yak update
