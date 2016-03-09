@@ -1,0 +1,107 @@
+#!/usr/bin/env ruby
+# encoding: utf-8
+# provide yak completions
+# Usage: yak glynx-import [OPTIONS] SOURCE_FILE
+# Summary: Convert csv file to glynx json
+
+require 'clamp'
+require 'fileutils'
+require 'csv'
+require 'fileutils'
+require 'base64'
+require "uuidtools"
+require 'json'
+
+class GlynxImport < Clamp::Command
+  option ['-o', '--output-dir'], 'directory', 'directory to save json file to', default: '.'
+  option '--complete', :flag, 'autocomplete output'
+
+  parameter '[SOURCE_FILE]', 'source file', :attribute_name => :source_file
+
+  def execute
+    return autocomplete if complete?
+
+    FileUtils.mkdir_p(output_dir)
+
+    CSV.foreach(source_file, headers: true) do |row|
+      # puts row.keys
+      uuid = UUIDTools::UUID.md5_create(UUIDTools::UUID_URL_NAMESPACE, row['Title'])
+      output_file = File.join(output_dir, uuid.to_s + '.json')
+      if File.exists?(output_file)
+        puts "File for #{row['Title']} already exists"
+        next
+      end
+
+      File.open(output_file, 'w') { |fp| fp << build_entry_json(row) }
+    end
+  end
+
+  def build_entry_json(row)
+    entry = build_hash_from_fields(entry_fields, row)
+    entry[:uuid] = UUIDTools::UUID.md5_create(UUIDTools::UUID_URL_NAMESPACE, row['Title'])
+    entry[:locations] = [build_hash_from_fields(location_fields, row)]
+    entry[:links] = [build_hash_from_fields(link_fields, row)]
+    entry[:primary_contact] = build_hash_from_fields({ name: 'Primary Contact' }, row)
+    entry[:primary_organization] = build_agency('Primary Agency', row)
+
+    JSON.pretty_generate(entry)
+  end
+
+  def build_hash_from_fields(fields, row)
+    fields.each_with_object({}) do |item, hash|
+      hash[item.first] = row[item.last]
+    end
+  end
+
+  def build_agency(field, row)
+    match = row[field].match(/([\w\s]+)\s\((\w+)\)/)
+    unless match.nil?
+      {
+        name: match[1],
+        acronym: match[2]
+      }
+    end
+  end
+
+  def build_contact(field, row)
+    last,first = row[field].split(', ')
+    {
+      last_name: last,
+      first_name: first
+    }
+  end
+
+  def entry_fields
+    {
+      title: 'Title',
+      description: 'Description',
+      status: 'Status',
+      type: 'Type'
+    }
+  end
+
+  def link_fields
+    {
+      category: 'Category',
+      title: 'Display Text',
+      url: 'URL'
+    }
+  end
+
+  def location_fields
+    {
+      name: 'Name',
+      wkt: 'WKT'
+    }
+  end
+
+  def autocomplete
+    opts = []
+    opts << '--output-dir' unless defined?(:output_dir)
+    opts += Dir.glob('*.csv') - [source_file]
+
+    puts opts.join("\n")
+  end
+end
+
+GlynxImport.run
