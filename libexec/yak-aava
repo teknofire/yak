@@ -4,15 +4,14 @@
 # Usage: yak geojson SOURCE_FILE
 # Summary: download and generate geojson for AAVA datasets
 
-require 'rubygems'
-require 'bundler/setup'
-
 require 'clamp'
 require 'fileutils'
 require 'yaml'
 require 'erb'
 require 'highline/import'
 require 'ostruct'
+require 'mixlib/shellout'
+require 'colorize'
 
 class Template < OpenStruct
   def render(template)
@@ -37,7 +36,6 @@ class AAVAConvert < Clamp::Command
     check_procfile
 
     return markdown if markdown?
-
 
     convert
   end
@@ -90,8 +88,8 @@ class AAVAConvert < Clamp::Command
         fp << Template.new(data).render(vrt_template)
       end
 
-      `echo "$(yak aava -m)" >> ../README.md`
-      `yak aava`
+      shellout('echo "$(yak aava -m)" >> ../README.md')
+      shellout('yak aava')
     end
   end
 
@@ -121,19 +119,28 @@ Convert command
     end
   end
 
-  def runit(item, tool='')
+  def runit(item, tool=nil)
     return unless config.include?(item)
+    shellout([tool, config[item]])
+  end
 
-    cmd="#{tool} #{config[item]}"
-    puts cmd
-    puts `#{cmd}` unless pretend?
-    return $?
+  def flatten_cmd(cmd)
+    Array.new(cmd).compact.join(' ')
+  end
+
+  def shellout(cmd)
+    cmd = flatten_cmd(cmd)
+    puts cmd.colorize(:green)
+
+    command = Mixlib::ShellOut.new(cmd, live_stdout: STDOUT)
+    command.run_command unless pretend?
+
+    print command.stderr.colorize(:red)
+    return command.exitstatus
   end
 
   def autocomplete
     opts = Dir.entries('.').reject { |f| f[0] == ?. || !File.directory?(f) }
-    # opts += %w{ -m --markdown -n --pretend -p --procfile }
-
     puts opts.join("\n")
   end
 end

@@ -2,7 +2,9 @@ GEM
   remote: https://rubygems.org/
   specs:
     clamp (0.6.3)
+    colorize (0.7.3)
     highline (1.6.21)
+    mixlib-shellout (2.2.1)
     trollop (2.0)
 
 PLATFORMS
@@ -10,5 +12,10 @@ PLATFORMS
 
 DEPENDENCIES
   clamp
+  colorize
   highline
+  mixlib-shellout
   trollop
+
+BUNDLED WITH
+   1.11.2
