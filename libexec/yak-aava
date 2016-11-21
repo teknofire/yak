@@ -41,7 +41,7 @@ class AAVAConvert < Clamp::Command
   end
 
   def procfile_exists?
-    File.exists?(File.join(working_path, procfile))
+    File.exists?(procfile_fullpath)
   end
 
   def procfile_template
@@ -58,8 +58,12 @@ class AAVAConvert < Clamp::Command
     end
   end
 
+  def procfile_fullpath
+    File.join(working_path, procfile)
+  end
+
   def config
-    @config ||= YAML.load(open(procfile))
+    @config ||= YAML.load(open(procfile_fullpath))
   end
 
   def working_path
@@ -125,7 +129,17 @@ Convert command
   end
 
   def flatten_cmd(cmd)
-    Array.new(cmd).compact.join(' ')
+    array_wrap(cmd).compact.join(' ')
+  end
+
+  def array_wrap(object)
+    if object.nil?
+      []
+    elsif object.respond_to?(:to_ary)
+      object.to_ary || [object]
+    else
+      [object]
+    end
   end
 
   def shellout(cmd)
