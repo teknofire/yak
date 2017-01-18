@@ -3,7 +3,10 @@ GEM
   specs:
     clamp (0.6.3)
     colorize (0.7.3)
+    faker (1.7.2)
+      i18n (~> 0.5)
     highline (1.6.21)
+    i18n (0.7.0)
     mixlib-shellout (2.2.1)
     trollop (2.0)
 
@@ -13,9 +16,10 @@ PLATFORMS
 DEPENDENCIES
   clamp
   colorize
+  faker
   highline
   mixlib-shellout
   trollop
 
 BUNDLED WITH
-   1.11.2
+   1.13.5
