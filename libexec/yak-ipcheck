@@ -8,6 +8,7 @@ require 'mixlib/shellout'
 require 'ipaddr'
 require 'securerandom'
 require 'faker'
+require 'colorize'
 
 class YakIpCheck < Clamp::Command
   option ['-s', '--sudo'], :flag, 'use sudo for nmap'
@@ -34,7 +35,7 @@ class YakIpCheck < Clamp::Command
 
     addresses = IPAddr.new(ipspace).to_range()
 
-    if defined?(:reserve_count)
+    if !reserve_count.nil?
       output_dhcp_conf(addresses, ips, reserve_count)
     else
       output_available_ipspace(addresses, ips)
@@ -42,14 +43,15 @@ class YakIpCheck < Clamp::Command
   end
 
   def output_dhcp_conf(ipspace, foundips, reserve_count)
-    output = ""
+    output = []
     count = 0
     start_ip = IPAddr.new(dhcp_start)
 
     ipspace.each do |ip|
       next if ip < start_ip
       next if reserved?(ip)
-      break if count > reserve_count
+      next if foundips.include?(ip.to_s)
+      break if count >= reserve_count
       count += 1
       hostname = vm_hostname if vm?
       hostname ||= metal_hostname
@@ -61,7 +63,13 @@ host #{hostname}#{dhcp_host} {
       EOB
     end
 
-    puts output
+    puts output.join("\n")
+
+    if output.count < reserve_count
+      puts "ERROR: Unable to find enough free ips".colorize(:red)
+    end
+
+    puts "Created #{output.count} of #{reserve_count} entries".colorize(:green)
   end
 
   def vm_hostname
