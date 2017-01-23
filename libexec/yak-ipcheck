@@ -31,23 +31,23 @@ class YakIpCheck < Clamp::Command
     command << 'sudo ' if sudo?
     command << "nmap -n -sn #{ipspace} -oG - | awk '/Up$/{print $2}'"
 
-    ips = %x{#{command}}.split("\n")
+    foundips = %x{#{command}}.split("\n")
 
-    addresses = IPAddr.new(ipspace).to_range()
+    ips = IPAddr.new(ipspace).to_range()
 
     if !reserve_count.nil?
-      output_dhcp_conf(addresses, ips, reserve_count)
+      output_dhcp_conf(ips, foundips, reserve_count)
     else
-      output_available_ipspace(addresses, ips)
+      output_available_ipspace(ips, foundips)
     end
   end
 
-  def output_dhcp_conf(ipspace, foundips, reserve_count)
+  def output_dhcp_conf(ips, foundips, reserve_count)
     output = []
     count = 0
     start_ip = IPAddr.new(dhcp_start)
 
-    ipspace.each do |ip|
+    ips.each do |ip|
       next if ip < start_ip
       next if reserved?(ip)
       next if foundips.include?(ip.to_s)
@@ -80,14 +80,13 @@ host #{hostname}#{dhcp_host} {
     "#{Faker::Team.creature.downcase}."
   end
 
-  def output_available_ipspace(ipspace, foundips)
-
-    ipspace.each do |ip|
+  def output_available_ipspace(ips, foundips)
+    ips.each do |ip|
       output = "#{ip} - "
       if reserved?(ip)
-        output << "reserved:"
+        output << 'reserved'.colorize(:yellow) + ':'
       end
-      output << (foundips.include?(ip.to_s) ? 'taken' : 'free')
+      output << (foundips.include?(ip.to_s) ? 'taken'.colorize(:red) : 'free'.colorize(:green))
 
       puts output
     end
@@ -109,7 +108,10 @@ host #{hostname}#{dhcp_host} {
 
   def reserved?(ip)
     last = ip.to_s.split('.').last.to_i
-    last < 20 || last == 255
+    range = IPAddr.new(ipspace).to_range()
+    broadcast = range.last.to_s.split('.').last.to_i
+
+    last < 20 || last == broadcast
   end
 
   def check_command(cmd)
