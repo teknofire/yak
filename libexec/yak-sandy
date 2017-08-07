@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# encoding: utf-8
+# Usage: yak sandy
+# Summary: Describe sandy command here
+
+exec csshX -l root --ssh_args '-Y' uaf-c-00.gina.alaska.edu uaf-c-01.gina.alaska.edu uaf-c-02.gina.alaska.edu uaf-c-03.gina.alaska.edu uaf-c-04.gina.alaska.edu uaf-c-05.gina.alaska.edu uaf-c-11.gina.alaska.edu
