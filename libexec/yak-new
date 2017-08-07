@@ -4,8 +4,10 @@
 # Summary: Create a new yak command
 
 require 'trollop'
-require 'colored'
+require 'colorize'
+require 'colorized_string'
 require 'erb'
+require 'fileutils'
 
 opts = Trollop::options do
   opt :type, 'Create new ruby command', default: 'ruby'
@@ -50,6 +52,7 @@ cmd = CmdTemplate.new(name, template)
 File.open(output, 'w') do |fp|
   fp << cmd.build(output)
 end
+FileUtils.chmod 0755, output
 
 unless opts['dont-open']
   system([ENV['EDITOR'], output].join(' '))
