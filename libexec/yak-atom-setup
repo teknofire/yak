@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# encoding: utf-8
+# Usage: yak atom-setup
+# Summary: Describe atom-setup command here
+
+# Put the rest of the atom-setup command here
+apm-beta install file-icons
+apm-beta install language-chef
