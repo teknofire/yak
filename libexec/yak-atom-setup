@@ -6,3 +6,4 @@
 # Put the rest of the atom-setup command here
 apm-beta install file-icons
 apm-beta install language-chef
+apm-beta install language-terraform
