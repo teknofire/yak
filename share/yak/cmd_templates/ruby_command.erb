@@ -3,17 +3,30 @@
 # Usage: yak <%= @name %>
 # Summary: Describe <%= @name %> command here
 
-require 'trollop'
+require 'clamp'
 
-opts = Trollop::options do
-  # opt :verbose, 'verbose output'
-  opt :complete
+class <%= @name.capitalize %>Command < Clamp::Command
+  option '--complete', :flag, 'autocomplete output'
+
+  parameter '[FILE]', 'file', :attribute_name => :file
+
+  def execute
+    return autocomplete if complete?
+
+    # example usage
+    # unless File.exists?(file)
+    #   signal_usage_error "file doesn't exist"
+    # end
+
+    # Put the rest of the <%= @name %> command here
+  end
+
+  def autocomplete
+    #opts = %w{ --verbose }
+    opts ||= {}
+
+    puts opts.join("\n")
+  end
 end
 
-# Provide yak completions
-if opts[:complete]
-  # puts '--verbose'
-  exit
-end
-
-# Put the rest of the <%= @name %> command here
+<%= @name.capitalize %>Command.run
