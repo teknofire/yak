@@ -11,22 +11,24 @@ require 'fileutils'
 
 opts = Trollop::options do
   opt :type, 'Create new ruby command', default: 'ruby'
-  opt 'dont-open', 'Don\'t open the new command in $EDITOR'
+  opt 'dont-open', "Don\'t open the new command in #{ENV['EDITOR'] || 'no editor defined'}"
   opt :complete
 end
 
 # Provide yak completions
 if opts[:complete]
   puts '--type'
+  puts '--dont-open'
+  puts '--help'
   exit
 end
 
 class CmdTemplate
   def initialize(name, template)
-    @name = name 
+    @name = name
     @template = template
   end
-  
+
   def build(output_filename)
     erb = ERB.new(File.read(@template))
     erb.result(binding)
