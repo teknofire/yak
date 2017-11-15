@@ -7,3 +7,7 @@
 apm-beta install file-icons
 apm-beta install language-chef
 apm-beta install language-terraform
+apm-beta install file-type-icons
+apm-beta install teletype
+apm-beta install select-rectangle
+apm-beta install tab-to-spaces
